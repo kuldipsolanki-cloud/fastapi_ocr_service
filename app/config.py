@@ -50,4 +50,4 @@ def get_tesseract_cmd() -> str:
     return "tesseract"
 
 TESSERACT_CMD = get_tesseract_cmd()
-DEFAULT_LANGUAGES = os.getenv("DEFAULT_LANGUAGES", "eng+guj")
+DEFAULT_LANGUAGES = os.getenv("DEFAULT_LANGUAGES", "eng+guj+hin")

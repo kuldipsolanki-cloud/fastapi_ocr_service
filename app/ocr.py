@@ -1,4 +1,5 @@
 import os
+import re
 import pytesseract
 from PIL import Image, ImageOps, ImageEnhance
 from app.config import TESSERACT_CMD, DEFAULT_LANGUAGES
@@ -24,23 +25,45 @@ class LanguagePackMissingError(OCRExtractorError):
 def preprocess_image(image: Image.Image) -> Image.Image:
     """
     Applies preprocessing to improve OCR accuracy:
-    1. Converts image to grayscale.
-    2. Resizes the image if it is too small (Tesseract performs better on larger text).
-    3. Enhances contrast.
+    1. Detects and corrects image rotation/orientation using OSD.
+    2. Converts image to grayscale.
+    3. Applies autocontrast to handle low lighting and uneven reflections.
+    4. Resizes the image if it is too small (Tesseract performs better on larger text).
+    5. Enhances contrast.
+    6. Enhances sharpness to reduce camera blur.
     """
     try:
-        # Convert to grayscale
+        # 1. Orientation / Rotation correction using OSD
+        try:
+            osd = pytesseract.image_to_osd(image)
+            rotation = re.search(r'Rotate: (\d+)', osd)
+            if rotation:
+                angle = int(rotation.group(1))
+                if angle != 0:
+                    logger.info(f"Correcting image rotation: rotating by {angle} degrees")
+                    image = image.rotate(-angle, expand=True)
+        except Exception as osd_err:
+            logger.debug(f"Orientation detection skipped: {str(osd_err)}")
+
+        # 2. Convert to grayscale
         gray = image.convert('L')
         
-        # Resize if width or height is less than 1000px
+        # 3. Apply autocontrast
+        gray = ImageOps.autocontrast(gray)
+        
+        # 4. Resize if width or height is less than 1200px
         width, height = gray.size
-        if width < 1000 or height < 1000:
+        if width < 1200 or height < 1200:
             scale_factor = 2
             gray = gray.resize((width * scale_factor, height * scale_factor), Image.Resampling.LANCZOS)
             
-        # Enhance Contrast
+        # 5. Enhance Contrast
         enhancer = ImageEnhance.Contrast(gray)
-        enhanced = enhancer.enhance(2.0)
+        gray = enhancer.enhance(2.0)
+        
+        # 6. Enhance Sharpness to reduce camera blur
+        sharpness_enhancer = ImageEnhance.Sharpness(gray)
+        enhanced = sharpness_enhancer.enhance(2.0)
         
         return enhanced
     except Exception as e:

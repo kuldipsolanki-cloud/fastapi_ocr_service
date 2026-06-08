@@ -1,7 +1,7 @@
 import re
 from typing import Dict, List, Any
 
-# English and Gujarati designation keywords (case-insensitive)
+# English, Gujarati, and Hindi designation keywords (case-insensitive)
 DESIGNATION_KEYWORDS = [
     # English designations
     "ceo", "founder", "co-founder", "director", "managing director", "md",
@@ -14,10 +14,14 @@ DESIGNATION_KEYWORDS = [
     "સંચાલક", "માલિક", "ભાગીદાર", "સેક્રેટરી", "પ્રમુખ", "અધ્યક્ષ",
     "વ્યવસ્થાપક", "પ્રોપરાઈટર", "તંત્રી", "કન્વેનર", "આયોજક",
     "એડવોકેટ", "વકીલ", "ડોક્ટર", "ડૉક્ટર", "ઇજનેર", "ઈજનેર",
-    "શિક્ષક", "પ્રોફેસર", "મેનેજર"
+    "શિક્ષક", "પ્રોફેસર", "મેનેજર",
+    # Hindi designations
+    "संचालक", "मालिक", "प्रबंधक", "साझेदार", "अध्यक्ष", "सचिव", 
+    "अधिवक्ता", "वकील", "डॉक्टर", "अभियंता", "शिक्षक", "प्राध्यापक", 
+    "प्रधान", "एडवोकेट", "मैनेजर"
 ]
 
-# English and Gujarati company suffix/type keywords (case-insensitive)
+# English, Gujarati, and Hindi company suffix/type keywords (case-insensitive)
 COMPANY_KEYWORDS = [
     # English suffixes
     r"\bltd\b", r"\blimited\b", r"\bpvt\b", r"\bprivate\b", r"\bcorp\b", 
@@ -31,27 +35,165 @@ COMPANY_KEYWORDS = [
     # Gujarati company indicators
     "લિમીટેડ", "લીમીટેડ", "પ્રાઇવેટ", "પ્રાઈવેટ", "એન્ટરપ્રાઇઝ", "એન્ટરપ્રાઈઝ",
     "ઇન્ડસ્ટ્રીઝ", "ઈન્ડસ્ટ્રીઝ", "સોલ્યુશન્સ", "સોલ્યુશન", "સર્વિસીસ", "સર્વિસ",
-    "એસોસિએટ્સ", "ગ્રુપ", "એજન્સી", "બેંક", "ટ્રસ્ટ", "મંડળ", "દુકાન", "સ્ટોર્સ", "સ્ટોર"
+    "એસોસિએટ્સ", "ગ્રુપ", "એજન્સી", "બેંક", "ટ્રસ્ટ", "મંડળ", "દુકાન", "સ્ટોર્સ", "સ્ટોર",
+    # Hindi company indicators
+    "लिमिटेड", "लीमिटेड", "प्राइवेट", "प्राईवेट", "एंटरप्राइजेज", "एंटरप्राइज",
+    "इंडस्ट्रीज", "सॉल्यूशंस", "सॉल्यूशन", "सर्विसेज", "सर्विस",
+    "एसोसिएट्स", "ग्रुप", "एजेंसी", "बैंक", "ट्रस्ट", "मंडल", "समिति", "दुकान", "स्टोर्स", "स्टोर"
 ]
 
-# English and Gujarati address / location keywords (case-insensitive)
+# English, Gujarati, and Hindi address / location keywords (case-insensitive)
 ADDRESS_KEYWORDS = [
     # English address tokens
     "road", "rd", "street", "st", "avenue", "ave", "society", "soc", "sector", "sec",
     "building", "bldg", "complex", "comp.", "plaza", "tower", "towers", "floor", "flr",
     "area", "city", "state", "district", "dist", "pincode", "pin", "near", "opp", "opposite",
     "behind", "beside", "at & po", "at.", "post", "taluka", "tal.", "tehsil", "highway", "hwy",
-    "india", "gujarat", "ahmedabad", "surat", "vadodara", "baroda", "rajkot", "gandhinagar",
+    "gujarat", "ahmedabad", "surat", "vadodara", "baroda", "rajkot", "gandhinagar",
     "bhavnagar", "jamnagar", "junagadh", "anand", "nadiad", "mehsana", "morbi", "bhuj", "valsad",
     "way", "suite", "ste", "apt", "apartment", "flat", "shop", "office", "off.", "block", "blck",
     "zone", "center", "centre", "square", "sq", "lane", "ln", "cross", "bypass",
     # Gujarati address tokens
     "રોડ", "સોસાયટી", "સોસા.", "નગર", "નગરની", "ગામ", "પોસ્ટ", "તાલુકો", "જીલ્લો",
     "બિલ્ડિંગ", "બિલ્ડીંગ", "કોમ્પ્લેક્સ", "પાસે", "સામે", "પાછળ", "નજીક", "હાઈવે", "હાઇવે",
-    "ગુજરાત", "ભારત", "અમદાવાદ", "સુરત", "વડોદરા", "રાજકોટ", "ગાંધીનગર", "ભાવનગર", "જામનગર",
+    "ગુજરાત", "અમદાવાદ", "સુરત", "વડોદરા", "રાજકોટ", "ગાંધીનગર", "ભાવનગર", "જામનગર",
     "બ્લોક", "ફ્લેટ", "ઓફિસ", "માળ", "શોપ", "દુકાન", "ઝોન", "સેક્ટર",
-    "પાર્ક", "બાગ", "વાડી", "ચોક", "શેરી", "ગલી", "અપાર્ટમેન્ટ", "બંગલો", "બંગલોઝ", "કોલોની", "વિસ્તાર", "જિલ્લો", "જિ."
+    "પાર્ક", "બાગ", "વાડી", "ચોક", "શેરી", "ગલી", "અપાર્ટમેન્ટ", "બંગલો", "બંગલોઝ", "કોલોની", "વિસ્તાર", "જિલ્લો", "જિ.",
+    # Hindi address tokens
+    "मार्ग", "रोड", "गली", "चौक", "नगर", "ग्राम", "गाँव", "गांव", "जिला", "ज़िला", "जि.", "तहसील", "ता.",
+    "भवन", "अपार्टमेंट", "बंगला", "सोसायटी", "सोसा.", "कोलोनी", "क्षेत्र", "इलाका", "पास", "के पास", 
+    "सामने", "के सामने", "पीछे", "के पीछे", "राजमार्ग", "हाईवे", "हाई-वे", "कार्यालय", "ऑफिस", 
+    "दुकान", "मंजिल", "मंज़िल", "फ्लैट", "सेक्टर"
 ]
+
+STATES = [
+    # English
+    "Gujarat", "Maharashtra", "Rajasthan", "Delhi", "Karnataka", "Tamil Nadu", "Uttar Pradesh", 
+    "Madhya Pradesh", "West Bengal", "Haryana", "Punjab", "Telangana", "Andhra Pradesh", "Kerala", "Goa", "Bihar",
+    # Gujarati
+    "ગુજરાત", "મહારાષ્ટ્ર", "રાજસ્થાન", "દિલ્હી", "કર્ણાટક", "તમિલનાડુ", "ઉત્તર પ્રદેશ", "મધ્ય પ્રદેશ",
+    # Hindi
+    "गुजरात", "महाराष्ट्र", "राजस्थान", "दिल्ली", "कर्नाटक", "तमिलनाडु", "उत्तर प्रदेश", "मध्य प्रदेश", "बिहार", "हरियाणा", "पंजाब"
+]
+
+CITIES = [
+    # English
+    "Ahmedabad", "Surat", "Vadodara", "Baroda", "Rajkot", "Bhavnagar", "Jamnagar", "Gandhinagar", 
+    "Bhuj", "Morbi", "Anand", "Nadiad", "Mehsana", "Valsad", "Vapi", "Navsari", "Bharuch", "Ankleshwar", 
+    "Junagadh", "Surendranagar", "Porbandar", "Godhra", "Dahod", "Palanpur", "Patan", "Veraval", "Amreli", 
+    "Deesa", "Mumbai", "Pune", "Bangalore", "Bengaluru", "Chennai", "Hyderabad", "Delhi", "New Delhi", 
+    "Kolkata", "Jaipur", "Udaipur", "Jodhpur", "Noida", "Gurugram", "Gurgaon", "Indore", "Bhopal", 
+    "Lucknow", "Patna", "Dwarka",
+    # Gujarati
+    "અમદાવાદ", "સુરત", "વડોદરા", "બરોડા", "રાજકોટ", "ભાવનગર", "જામનગર", "ગાંધીનગર", 
+    "ભુજ", "મોરબી", "આણંદ", "નડિયાદ", "મહેસાણા", "વલસાડ", "વાપી", "નવસારી", "ભરૂચ", "અંકલેશ્વર", 
+    "જૂનાગઢ", "સુરેન્દ્રનગર", "પોરબંદર", "ગોધરા", "દાહોદ", "પાલનપુર", "પાટણ", "વેરાવળ", "અમરેલી", 
+    "ડીસા", "મુંબઈ", "પુણે", "બેંગલોર", "બેલગાવી", "ચેન્નાઈ", "હૈદરાબાદ", "દિલ્હી", "નવી દિલ્હી", 
+    "કોલકાતા", "જયપુર", "ઉદયપુર", "જોધપુર", "નોઈડા", "ગુરૂગ્રામ", "ઇન્દોર", "ભોપาล", 
+    "લખનૌ", "પટના", "દ્વારકા",
+    # Hindi
+    "अहमदाबाद", "सूरत", "वडोदरा", "बड़ौदा", "राजकोट", "भावनगर", "जामनगर", "गांधीनगर", 
+    "भुज", "मोरबी", "आनंद", "नडियाद", "मेहसाना", "वलसाड", "वापी", "नवसारी", "भरूच", "अंकलेश्वर", 
+    "जूनागढ़", "सुरेंद्रनगर", "पोरबंदर", "गोधरा", "दाहौद", "दाहोद", "पालनपुर", "पाटन", "वेरावल", "अमरेली", 
+    "डीसा", "मुंबई", "पुणे", "बंगलौर", "बेंगलुरु", "चेन्नई", "हैबाद", "हैदराबाद", "दिल्ली", "नई दिल्ली", 
+    "कोलकाता", "जयपुर", "उदयपुर", "जोधपुर", "नोएडा", "गुरुग्राम", "गुड़गांव", "इंदौर", "भोपाल", 
+    "लखनऊ", "पटना", "द्वारका"
+]
+
+CITY_TO_STATE_EN = {
+    # Gujarat
+    "Ahmedabad": "Gujarat", "Surat": "Gujarat", "Vadodara": "Gujarat", "Baroda": "Gujarat", "Rajkot": "Gujarat",
+    "Bhavnagar": "Gujarat", "Jamnagar": "Gujarat", "Gandhinagar": "Gujarat", "Bhuj": "Gujarat", "Morbi": "Gujarat",
+    "Anand": "Gujarat", "Nadiad": "Gujarat", "Mehsana": "Gujarat", "Valsad": "Gujarat", "Vapi": "Gujarat",
+    "Navsari": "Gujarat", "Bharuch": "Gujarat", "Ankleshwar": "Gujarat", "Junagadh": "Gujarat", 
+    "Surendranagar": "Gujarat", "Porbandar": "Gujarat", "Godhra": "Gujarat", "Dahod": "Gujarat", 
+    "Palanpur": "Gujarat", "Patan": "Gujarat", "Veraval": "Gujarat", "Amreli": "Gujarat", "Deesa": "Gujarat",
+    "Dwarka": "Gujarat",
+    # Maharashtra
+    "Mumbai": "Maharashtra", "Pune": "Maharashtra",
+    # Karnataka
+    "Bangalore": "Karnataka", "Bengaluru": "Karnataka",
+    # Tamil Nadu
+    "Chennai": "Tamil Nadu",
+    # Telangana
+    "Hyderabad": "Telangana",
+    # Delhi
+    "Delhi": "Delhi", "New Delhi": "Delhi",
+    # West Bengal
+    "Kolkata": "West Bengal",
+    # Rajasthan
+    "Jaipur": "Rajasthan", "Udaipur": "Rajasthan", "Jodhpur": "Rajasthan",
+    # Uttar Pradesh
+    "Noida": "Uttar Pradesh", "Lucknow": "Uttar Pradesh",
+    # Haryana
+    "Gurugram": "Haryana", "Gurgaon": "Haryana",
+    # Madhya Pradesh
+    "Indore": "Madhya Pradesh", "Bhopal": "Madhya Pradesh",
+    # Bihar
+    "Patna": "Bihar"
+}
+
+CITY_TO_STATE_GU = {
+    "અમદાવાદ": "ગુજરાત", "સુરત": "ગુજરાત", "વડોદરા": "ગુજરાત", "બરોડા": "ગુજરાત", "રાજકોટ": "ગુજરાત",
+    "ભાવનગર": "ગુજરાત", "જામનગર": "ગુજરાત", "ગાંધીનગર": "ગુજરાત", "ભુજ": "ગુજરાત", "મોરબી": "ગુજરાત",
+    "આણંદ": "ગુજરાત", "નડિયાદ": "ગુજરાત", "મહેસાણા": "ગુજરાત", "વલસાડ": "ગુજરાત", "વાપી": "ગુજરાત",
+    "નવસારી": "ગુજરાત", "ભરૂચ": "ગુજરાત", "અંકલેશ્વર": "ગુજરાત", "જૂનાગઢ": "ગુજરાત", "સુરેન્દ્રનગર": "ગુજરાત",
+    "પોરબંદર": "ગુજરાત", "ગોધરા": "ગુજરાત", "દાહોદ": "ગુજરાત", "પાલનપુર": "ગુજરાત", "પાટણ": "ગુજરાત",
+    "વેરાવળ": "ગુજરાત", "અમરેલી": "ગુજરાત", "ડીસા": "ગુજરાત", "દ્વારકા": "ગુજરાત",
+    "મુંબઈ": "મહારાષ્ટ્ર", "પુણે": "મહારાષ્ટ્ર", "બેંગલોર": "કર્ણાટક", "ચેન્નાઈ": "તમિલનાડુ",
+    "હૈદરાબાદ": "તેલંગાણા", "દિલ્હી": "દિલ્હી", "નવી દિલ્હી": "દિલ્હી"
+}
+
+CITY_TO_STATE_HI = {
+    "अहमदाबाद": "गुजरात", "सूरत": "गुजरात", "वडोदरा": "गुजरात", "बड़ौदा": "गुजरात", "राजकोट": "गुजरात",
+    "भावनगर": "गुजरात", "जामनगर": "गुजरात", "गांधीनगर": "गुजरात", "भुज": "गुजरात", "मोरबी": "गुजरात",
+    "आनंद": "गुजरात", "नडियाद": "गुजरात", "मेहसाना": "गुजरात", "वलसाड": "गुजरात", "वापी": "गुजरात",
+    "नवसारी": "गुजरात", "भरूच": "गुजरात", "अंकलेश्वर": "गुजरात", "जूनागढ़": "गुजरात", "सुरेंद्रनगर": "गुजरात",
+    "पोरबंदर": "गुजरात", "गोधरा": "गुजरात", "दाहौद": "गुजरात", "दाहोद": "गुजरात", "पालनपुर": "गुजरात",
+    "पाटन": "गुजरात", "वेरावल": "गुजरात", "अमरेली": "गुजरात", "डीसा": "गुजरात", "द्वारका": "गुजरात",
+    "मुंबई": "महाराष्ट्र", "पुणे": "महाराष्ट्र", "बंगलौर": "कर्नाटक", "बेंगलुरु": "कर्नाटक",
+    "चेन्नई": "तमिलनाडु", "हैराबाद": "तेलंगाना", "हैदराबाद": "तेलंगाना", "दिल्ली": "दिल्ली", "नई दिल्ली": "दिल्ली",
+    "कोलकाता": "पश्चिम बंगाल", "जयपुर": "राजस्थान", "उदयपुर": "राजस्थान", "जोधपुर": "राजस्थान",
+    "नोएडा": "उत्तर प्रदेश", "लखनऊ": "उत्तर प्रदेश", "गुरुग्राम": "हरियाणा", "गुड़गांव": "हरियाणा",
+    "इन्डोर": "मध्य प्रदेश", "इंदौर": "मध्य प्रदेश", "भोपाल": "मध्य प्रदेश", "पटना": "बिहार"
+}
+
+def extract_city_and_state(text: str) -> (str, str):
+    city = ""
+    state = ""
+    
+    # Check for state presence
+    for s in STATES:
+        if re.search(r'[a-zA-Z]', s):
+            if re.search(rf"\b{re.escape(s)}\b", text, re.IGNORECASE):
+                state = s
+                break
+        else:
+            if s in text:
+                state = s
+                break
+                
+    # Check for city presence
+    for c in CITIES:
+        if re.search(r'[a-zA-Z]', c):
+            if re.search(rf"\b{re.escape(c)}\b", text, re.IGNORECASE):
+                city = c
+                break
+        else:
+            if c in text:
+                city = c
+                break
+                
+    # Fallback lookup if city is found but state is not present in text
+    if city and not state:
+        if city in CITY_TO_STATE_EN:
+            state = CITY_TO_STATE_EN[city]
+        elif city in CITY_TO_STATE_GU:
+            state = CITY_TO_STATE_GU[city]
+        elif city in CITY_TO_STATE_HI:
+            state = CITY_TO_STATE_HI[city]
+            
+    return city, state
 
 def clean_text_line(line: str) -> str:
     """Cleans a line of text by stripping whitespace and removing leading/trailing punctuation."""
@@ -59,8 +201,8 @@ def clean_text_line(line: str) -> str:
         return ""
     # Strip whitespace
     line = line.strip()
-    # Remove leading/trailing common punctuation but preserve Gujarati and English letters/numbers
-    line = re.sub(r"^[^\w\s\u0A80-\u0AFF]+|[^\w\s\u0A80-\u0AFF]+$", "", line)
+    # Remove leading/trailing common punctuation but preserve Gujarati, Devanagari (Hindi) and English letters/numbers
+    line = re.sub(r"^[^\w\s\u0A80-\u0AFF\u0900-\u097F]+|[^\w\s\u0A80-\u0AFF\u0900-\u097F]+$", "", line)
     return line.strip()
 
 def extract_emails(text: str) -> List[str]:
@@ -180,7 +322,7 @@ def parse_business_card(raw_text: str) -> Dict[str, Any]:
         line_lower = line.lower()
         
         # Explicit check for contact labels
-        if any(lbl in line_lower for lbl in ["mobile", "mob", "phone", "tel", "email", "mail", "skype", "website", "web"]):
+        if any(re.search(rf"\b{lbl}\b", line_lower) for lbl in ["mobile", "mob", "phone", "tel", "email", "mail", "skype", "website", "web"]):
             is_contact = True
             
         for email in parsed_emails:
@@ -352,14 +494,20 @@ def parse_business_card(raw_text: str) -> Dict[str, Any]:
                     candidate_lines.remove(item)
 
     # Combine multiple designations if found
-    designation_str = " / ".join(designations) if designations else None
+    designation_str = " / ".join(designations) if designations else ""
+
+    # Extract city and state
+    city, state = extract_city_and_state(raw_text)
 
     return {
-        "owner_name": owner_name or None,
+        "person_name": owner_name or "",
+        "business_name": company_name or "",
         "designation": designation_str,
-        "company_name": company_name or None,
-        "email": emails[0] if emails else None,
-        "website": websites[0] if websites else None,
-        "location": location or None,
-        "phones": phones
+        "phones": phones,
+        "emails": emails,
+        "websites": websites,
+        "address": location or "",
+        "city": city or "",
+        "state": state or "",
+        "raw_text": raw_text
     }

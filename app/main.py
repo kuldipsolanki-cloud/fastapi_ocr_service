@@ -37,19 +37,17 @@ app.add_middleware(
 )
 
 # Response Models for Documentation
-class ParsedData(BaseModel):
-    owner_name: Optional[str] = Field(None, description="Extracted owner/representative name")
-    designation: Optional[str] = Field(None, description="Extracted designation/job title")
-    company_name: Optional[str] = Field(None, description="Extracted company name")
-    email: Optional[str] = Field(None, description="Extracted email address")
-    website: Optional[str] = Field(None, description="Extracted website URL")
-    location: Optional[str] = Field(None, description="Extracted location/address details")
-    phones: List[str] = Field(default_factory=list, description="List of extracted phone numbers")
-
 class OCRResponse(BaseModel):
-    success: bool = Field(..., description="Indicates if extraction was successful")
-    text: str = Field(..., description="Raw extracted text from the image")
-    parsed_data: ParsedData = Field(..., description="Parsed and structured card information")
+    person_name: str = Field("", description="Extracted person name")
+    business_name: str = Field("", description="Extracted business/company name")
+    designation: str = Field("", description="Extracted designation/job title")
+    phones: List[str] = Field(default_factory=list, description="Extracted phone/mobile numbers")
+    emails: List[str] = Field(default_factory=list, description="Extracted email addresses")
+    websites: List[str] = Field(default_factory=list, description="Extracted website URLs")
+    address: str = Field("", description="Extracted address/location details")
+    city: str = Field("", description="Extracted city")
+    state: str = Field("", description="Extracted state")
+    raw_text: str = Field("", description="Raw extracted text from the card")
 
 class HealthCheckResponse(BaseModel):
     status: str = Field(..., description="Overall system health status")
@@ -111,7 +109,7 @@ async def extract_text(
     file: UploadFile = File(..., description="The business card image file (JPG, JPEG, PNG)"),
     lang: Optional[str] = Query(
         None, 
-        description="Override OCR languages. Default is 'eng+guj'. Separate multiple languages with a '+' sign."
+        description="Override OCR languages. Default is 'eng+guj+hin'. Separate multiple languages with a '+' sign."
     )
 ):
     # 1. Validate file format
@@ -135,11 +133,7 @@ async def extract_text(
         parsed_fields = parse_business_card(raw_text)
         
         # 5. Build and return structured response
-        return OCRResponse(
-            success=True,
-            text=raw_text,
-            parsed_data=ParsedData(**parsed_fields)
-        )
+        return OCRResponse(**parsed_fields)
 
     except TesseractNotInstalledError as e:
         raise HTTPException(
