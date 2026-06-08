@@ -32,14 +32,20 @@ COMPANY_KEYWORDS = [
     r"\bsystems\b", r"\bsystem\b", r"\bstudio\b", r"\bassociates\b", 
     r"\bagency\b", r"\bagencies\b", r"\bbank\b", r"\bmart\b", r"\btrust\b",
     r"\borganization\b", r"\borg\b", r"\bassociation\b", r"\bclub\b",
+    r"\bhotel\b", r"\bhotels\b", r"\brestaurant\b", r"\brestaurants\b", 
+    r"\bdining\b", r"\blodge\b", r"\blodging\b", r"\bresort\b", r"\bresorts\b", 
+    r"\bcafe\b", r"\bbakery\b", r"\bdhaba\b", r"\bkitchen\b", r"\bsweets\b", 
+    r"\bstore\b", r"\bstores\b", r"\bmart\b", r"\bplaza\b", r"\bcomplex\b",
     # Gujarati company indicators
     "લિમીટેડ", "લીમીટેડ", "પ્રાઇવેટ", "પ્રાઈવેટ", "એન્ટરપ્રાઇઝ", "એન્ટરપ્રાઈઝ",
     "ઇન્ડસ્ટ્રીઝ", "ઈન્ડસ્ટ્રીઝ", "સોલ્યુશન્સ", "સોલ્યુશન", "સર્વિસીસ", "સર્વિસ",
     "એસોસિએટ્સ", "ગ્રુપ", "એજન્સી", "બેંક", "ટ્રસ્ટ", "મંડળ", "દુકાન", "સ્ટોર્સ", "સ્ટોર",
+    "હોટલ", "હોટેલ", "રેસ્ટોરન્ટ", "ડાઈનીંગ", "ડાયનીંગ", "હોલ", "ઢાબા", "રસોઈ", "ભોજનાલય", "લોજ", "રિઝોર્ટ",
     # Hindi company indicators
     "लिमिटेड", "लीमिटेड", "प्राइवेट", "प्राईवेट", "एंटरप्राइजेज", "एंटरप्राइज",
     "इंडस्ट्रीज", "सॉल्यूशंस", "सॉल्यूशन", "सर्विसेज", "सर्विस",
-    "एसोसिएट्स", "ग्रुप", "एजेंसी", "बैंक", "ट्रस्ट", "मंडल", "समिति", "दुकान", "स्टोर्स", "स्टोर"
+    "एसोसिएट्स", "ग्रुप", "एजेंसी", "बैंक", "ट्रस्ट", "मंडल", "समिति", "दुकान", "स्टोर्स", "स्टोर",
+    "होटल", "होटेल", "रेस्टोरेंट", "रेस्टोरेंट", "डाइनिंग", "हॉल", "ढाबा", "रसोई", "भोजनालय", "लॉज", "रिसॉर्ट"
 ]
 
 # English, Gujarati, and Hindi address / location keywords (case-insensitive)
@@ -305,6 +311,10 @@ def parse_business_card(raw_text: str) -> Dict[str, Any]:
     Emails, Websites, Phones, and Location.
     Supports both English and Gujarati.
     """
+    # Normalize contact labels to prevent hyphen-splitting bugs (e.g. E-mail -> email)
+    raw_text = re.sub(r'\b[eE]-[mM]ail\b', 'email', raw_text)
+    raw_text = re.sub(r'\b[wW]eb-[sS]ite\b', 'website', raw_text)
+    
     # Fix OCR spacing issues in websites/emails, e.g. "www.google. com" -> "www.google.com"
     # only in lines that look like emails or websites to avoid breaking abbreviations like "Opp. Yash"
     cleaned_raw_lines = []
@@ -405,9 +415,15 @@ def parse_business_card(raw_text: str) -> Dict[str, Any]:
         # Check if line contains Location keywords or Pincode/Zipcode
         is_location = False
         for kw in ADDRESS_KEYWORDS:
-            if kw in line_lower:
-                is_location = True
-                break
+            if re.search(r'[a-zA-Z]', kw):
+                pattern = rf"\b{re.escape(kw)}\b"
+                if re.search(pattern, line_lower):
+                    is_location = True
+                    break
+            else:
+                if kw in line_lower:
+                    is_location = True
+                    break
         # Or look for a pincode or zip code (e.g. 380001, 380 001, 94105, 94105-1234)
         if re.search(r"\b\d{6}\b|\b\d{3}\s?\d{3}\b|\b\d{5}(?:-\d{4})?\b", line):
             is_location = True
@@ -504,7 +520,20 @@ def parse_business_card(raw_text: str) -> Dict[str, Any]:
         for cand in candidate_lines:
             # Names shouldn't contain digits or common URL/email patterns
             if not any(c.isdigit() for c in cand) and len(cand) > 3:
-                # Avoid company names if possible (often company name is longer or contains symbols)
+                # Avoid company/business names (shouldn't contain company/hospitality keywords)
+                cand_lower = cand.lower()
+                is_company = False
+                for kw in COMPANY_KEYWORDS:
+                    if kw.startswith(r"\b"):
+                        pattern = kw
+                    else:
+                        pattern = re.escape(kw)
+                    if re.search(pattern, cand_lower):
+                        is_company = True
+                        break
+                if is_company:
+                    continue
+                    
                 words = cand.split()
                 if len(words) <= 5: # Name is rarely more than 5 words
                     owner_name = cand
