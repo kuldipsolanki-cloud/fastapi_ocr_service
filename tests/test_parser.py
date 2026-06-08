@@ -106,9 +106,34 @@ def test_hindi_card_parsing():
     assert "+91 98765 43210" in parsed["phones"]
     print("[OK] Hindi card parsing test PASSED!")
 
+def test_bhalani_card_parsing():
+    raw_text = """
+    f હુ ૦૯૮૨૫૪ ૭૧૯૨૫
+    7 ઓ.૦૨૭૮-૨૪૩૬૬૦૧
+    
+    સૌ. ડી. ભલાણી ટ્‌
+    એડવોકેટ |
+    
+    9 ઓમિક કોમ્પ્લેક્ષ, પહેલા માળે, | ૯, વિભા પાર્ક सोसायटी, है
+    પીરછલ્લા રોડ, ભાવનગર-૧. અનંતવાડી, રમાબાગ, ભાવનગર,
+    """
+    
+    parsed = parse_business_card(raw_text)
+    
+    print("\n--- Bhalani Card Parsing Test ---")
+    print(f"Raw Text:\n{raw_text.strip()}\n")
+    print(f"Parsed Result: {parsed}")
+    
+    assert parsed["person_name"] == "સૌ. ડી. ભલાણી", f"Expected 'સૌ. ડી. ભલાણી', got '{parsed['person_name']}'"
+    assert parsed["designation"] == "એડવોકેટ", f"Expected 'એડવોકેટ', got '{parsed['designation']}'"
+    assert "098254 71925" in parsed["phones"], f"Expected '098254 71925' in phones, got {parsed['phones']}"
+    assert "0278-2436601" in parsed["phones"], f"Expected '0278-2436601' in phones, got {parsed['phones']}"
+    print("[OK] Bhalani card parsing test PASSED!")
+
 if __name__ == "__main__":
     print("Running parser heuristic tests...")
     test_english_card_parsing()
     test_gujarati_card_parsing()
     test_hindi_card_parsing()
+    test_bhalani_card_parsing()
     print("\nAll parser tests completed successfully!")

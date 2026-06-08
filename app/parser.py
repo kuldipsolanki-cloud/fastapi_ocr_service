@@ -237,8 +237,51 @@ def extract_websites(text: str, emails: List[str]) -> List[str]:
                 
     return list(set(valid_websites))
 
+def translate_indian_digits_to_english(text: str) -> str:
+    """Translates Gujarati and Devanagari digits to standard English ASCII digits."""
+    gujarati_digits = "૦૧૨૩૪૫૬૭૮૯"
+    devanagari_digits = "०१२३४५६७८९"
+    english_digits = "0123456789"
+    
+    trans_table = str.maketrans(
+        gujarati_digits + devanagari_digits,
+        english_digits + english_digits
+    )
+    return text.translate(trans_table)
+
+def clean_stray_artifacts(text: str) -> str:
+    """
+    Cleans stray OCR artifacts from parsed string fields:
+    - Removes standalone vertical bars '|' and extraneous slashes
+    - Trims leading/trailing whitespace
+    - Strips stray trailing letters or incomplete character residues (e.g. single letters like 'ટ્', 'ગા', 'જ' at the end)
+    """
+    if not text:
+        return ""
+        
+    # Remove standalone vertical bars, backslashes, or common separator noise
+    text = re.sub(r'\s*\|\s*', ' ', text)
+    text = re.sub(r'\s*\\\s*', ' ', text)
+    text = text.strip()
+    
+    while True:
+        prev_text = text
+        # Remove trailing single Gujarati/Hindi letters (optionally with a virama/zwnj/zwj) separated by space
+        text = re.sub(r'\s+[\u0A80-\u0AFF\u0900-\u097F][\u0ACD\u200C\u200D]?$', '', text)
+        # Remove trailing single English letters separated by space
+        text = re.sub(r'\s+[a-zA-Z]$', '', text)
+        # Remove trailing non-alphanumeric punctuation marks/garbage symbols
+        text = re.sub(r'\s+[^\w\s\u0A80-\u0AFF\u0900-\u097F]+$', '', text)
+        text = text.strip()
+        if text == prev_text:
+            break
+            
+    # Also remove any leftover leading/trailing commas, dots, dashes, or spaces
+    text = re.sub(r'^[.,/\\\s-]+|[.,/\\\s-]+$', '', text)
+    return text.strip()
+
 def extract_phones(text: str) -> List[str]:
-    """Extracts phone numbers, mobile numbers from text."""
+    """Extracts phone numbers, mobile numbers from text and translates Indian digits to English."""
     # Matches formats like +91 98765 43210, 0261-2345678, (079) 12345678, 98765-43210, etc.
     # Pattern allows for Gujarati numbers as well if transcribed as digits (Tesseract usually outputs English digits for numbers)
     phone_pattern = r"\+?\d{1,4}[-.\s]??\(?\d{1,4}?\)?[-.\s]??\d{3,4}[-.\s]??\d{3,4}[-.\s]??\d{0,4}"
@@ -246,11 +289,13 @@ def extract_phones(text: str) -> List[str]:
     candidates = re.findall(phone_pattern, text)
     valid_phones = []
     for candidate in candidates:
-        # Clean candidates: count actual digits
-        digits_only = re.sub(r"\D", "", candidate)
+        # Translate Gujarati/Devanagari digits to English digits
+        candidate_eng = translate_indian_digits_to_english(candidate)
+        # Clean candidates: count actual ASCII digits
+        digits_only = re.sub(r"[^0-9]", "", candidate_eng)
         # Phone numbers usually have 8 to 15 digits (including country code)
         if 8 <= len(digits_only) <= 15:
-            valid_phones.append(candidate.strip())
+            valid_phones.append(candidate_eng.strip())
             
     return list(set(valid_phones))
 
@@ -494,19 +539,20 @@ def parse_business_card(raw_text: str) -> Dict[str, Any]:
                     candidate_lines.remove(item)
 
     # Combine multiple designations if found
-    designation_str = " / ".join(designations) if designations else ""
+    cleaned_designations = [clean_stray_artifacts(d) for d in designations if clean_stray_artifacts(d)]
+    designation_str = " / ".join(cleaned_designations) if cleaned_designations else ""
 
     # Extract city and state
     city, state = extract_city_and_state(raw_text)
 
     return {
-        "person_name": owner_name or "",
-        "business_name": company_name or "",
+        "person_name": clean_stray_artifacts(owner_name),
+        "business_name": clean_stray_artifacts(company_name),
         "designation": designation_str,
         "phones": phones,
         "emails": emails,
         "websites": websites,
-        "address": location or "",
+        "address": clean_stray_artifacts(location),
         "city": city or "",
         "state": state or "",
         "raw_text": raw_text
