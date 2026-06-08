@@ -35,15 +35,15 @@ def test_english_card_parsing():
     print(f"Raw Text:\n{raw_text.strip()}\n")
     print(f"Parsed Result: {parsed}")
     
-    assert parsed["person_name"] == "Amit Patel", f"Expected Amit Patel, got {parsed['person_name']}"
-    assert parsed["designation"] == "Chief Executive Officer", f"Expected Chief Executive Officer, got {parsed['designation']}"
-    assert parsed["business_name"] == "Nexus Solutions India", f"Expected Nexus Solutions India, got {parsed['business_name']}"
-    assert "amit.patel@nexussolutions.in" in parsed["emails"]
-    assert "www.nexussolutions.in" in parsed["websites"]
+    assert parsed["full_name"] == "Amit Patel", f"Expected Amit Patel, got {parsed['full_name']}"
+    assert parsed["job_title"] == "Chief Executive Officer", f"Expected Chief Executive Officer, got {parsed['job_title']}"
+    assert parsed["company_name"] == "Nexus Solutions India", f"Expected Nexus Solutions India, got {parsed['company_name']}"
+    assert parsed["email"] == "amit.patel@nexussolutions.in"
+    assert parsed["website"] == "www.nexussolutions.in"
     assert parsed["city"] == "Bangalore", f"Expected Bangalore, got {parsed['city']}"
     assert parsed["state"] == "Karnataka", f"Expected Karnataka, got {parsed['state']}"
-    assert "1200 Innovation Way" in parsed["address"]
-    assert len(parsed["phones"]) >= 2
+    assert "1200 Innovation Way" in parsed["location"]
+    assert len(parsed["phone_number"]) >= 2
     print("[OK] English card parsing test PASSED!")
 
 def test_gujarati_card_parsing():
@@ -65,15 +65,15 @@ def test_gujarati_card_parsing():
     print(f"Raw Text:\n{raw_text.strip()}\n")
     print(f"Parsed Result: {parsed}")
     
-    assert parsed["person_name"] == "મહેશભાઈ શાહ", f"Expected મહેશભાઈ શાહ, got {parsed['person_name']}"
-    assert parsed["designation"] == "માલિક", f"Expected માલિક, got {parsed['designation']}"
-    assert parsed["business_name"] == "શ્રીજી એન્ટરપ્રાઇઝ", f"Expected શ્રીજી એન્ટરપ્રાઇઝ, got {parsed['business_name']}"
-    assert "contact@shreejienterprise.in" in parsed["emails"]
-    assert "www.shreejienterprise.in" in parsed["websites"]
+    assert parsed["full_name"] == "મહેશભાઈ શાહ", f"Expected મહેશભાઈ શાહ, got {parsed['full_name']}"
+    assert parsed["job_title"] == "માલિક", f"Expected માલિક, got {parsed['job_title']}"
+    assert parsed["company_name"] == "શ્રીજી એન્ટરપ્રાઇઝ", f"Expected શ્રીજી એન્ટરપ્રાઇઝ, got {parsed['company_name']}"
+    assert parsed["email"] == "contact@shreejienterprise.in"
+    assert parsed["website"] == "www.shreejienterprise.in"
     assert parsed["city"] == "અમદાવાદ", f"Expected અમદાવાદ, got {parsed['city']}"
     assert parsed["state"] == "ગુજરાત", f"Expected ગુજરાત, got {parsed['state']}"
-    assert "એસ. જી. હાઇવે" in parsed["address"] or "એસ.જી. હાઇવે" in parsed["address"]
-    assert "+91 99887 76655" in parsed["phones"]
+    assert "એસ. જી. હાઇવે" in parsed["location"] or "એસ.જી. હાઇવે" in parsed["location"]
+    assert "+91 99887 76655" in parsed["phone_number"]
     print("[OK] Gujarati card parsing test PASSED!")
 
 def test_hindi_card_parsing():
@@ -95,15 +95,15 @@ def test_hindi_card_parsing():
     print(f"Raw Text:\n{raw_text.strip()}\n")
     print(f"Parsed Result: {parsed}")
     
-    assert parsed["person_name"] == "राजेश शर्मा", f"Expected राजेश शर्मा, got {parsed['person_name']}"
-    assert parsed["designation"] == "प्रबंधक", f"Expected प्रबंधक, got {parsed['designation']}"
-    assert parsed["business_name"] == "माँ शारदा प्रिंटर्स", f"Expected माँ शारदा प्रिंटर्स, got {parsed['business_name']}"
-    assert "rajesh@sharda.in" in parsed["emails"]
-    assert "www.sharda.in" in parsed["websites"]
+    assert parsed["full_name"] == "राजेश शर्मा", f"Expected राजेश शर्मा, got {parsed['full_name']}"
+    assert parsed["job_title"] == "प्रबंधक", f"Expected प्रबंधक, got {parsed['job_title']}"
+    assert parsed["company_name"] == "माँ शारदा प्रिंटर्स", f"Expected माँ शारदा प्रिंटर्स, got {parsed['company_name']}"
+    assert parsed["email"] == "rajesh@sharda.in"
+    assert parsed["website"] == "www.sharda.in"
     assert parsed["city"] == "इंदौर", f"Expected इंदौर, got {parsed['city']}"
     assert parsed["state"] == "मध्य प्रदेश", f"Expected मध्य प्रदेश, got {parsed['state']}"
-    assert "एमजी रोड" in parsed["address"]
-    assert "+91 98765 43210" in parsed["phones"]
+    assert "एमजी रोड" in parsed["location"]
+    assert "+91 98765 43210" in parsed["phone_number"]
     print("[OK] Hindi card parsing test PASSED!")
 
 def test_bhalani_card_parsing():
@@ -124,10 +124,10 @@ def test_bhalani_card_parsing():
     print(f"Raw Text:\n{raw_text.strip()}\n")
     print(f"Parsed Result: {parsed}")
     
-    assert parsed["person_name"] == "સૌ. ડી. ભલાણી", f"Expected 'સૌ. ડી. ભલાણી', got '{parsed['person_name']}'"
-    assert parsed["designation"] == "એડવોકેટ", f"Expected 'એડવોકેટ', got '{parsed['designation']}'"
-    assert any("098254" in p or "૦૯૮૨૫૪" in p for p in parsed["phones"]), f"Expected phone '098254' in phones, got {parsed['phones']}"
-    assert any("2436601" in p or "૨૪૩૬૬૦૧" in p for p in parsed["phones"]), f"Expected phone '2436601' in phones, got {parsed['phones']}"
+    assert parsed["full_name"] == "સૌ. ડી. ભલાણી", f"Expected 'સૌ. ડી. ભલાણી', got '{parsed['full_name']}'"
+    assert parsed["job_title"] == "એડવોકેટ", f"Expected 'એડવોકેટ', got '{parsed['job_title']}'"
+    assert any("098254" in p or "૦૯૮૨૫૪" in p for p in parsed["phone_number"]), f"Expected phone '098254' in phone_number, got {parsed['phone_number']}"
+    assert any("2436601" in p or "૨૪૩૬૬૦૧" in p for p in parsed["phone_number"]), f"Expected phone '2436601' in phone_number, got {parsed['phone_number']}"
     print("[OK] Bhalani card parsing test PASSED!")
 
 def test_hotel_card_parsing():
@@ -146,14 +146,14 @@ def test_hotel_card_parsing():
     print(f"Raw Text:\n{raw_text.strip()}\n")
     print(f"Parsed Result: {parsed}")
     
-    assert parsed["business_name"] == "HOTEL GOMTI & Restaurant", f"Expected 'HOTEL GOMTI & Restaurant', got '{parsed['business_name']}'"
-    assert parsed["person_name"] == "", f"Expected empty person name, got '{parsed['person_name']}'"
+    assert parsed["company_name"] == "HOTEL GOMTI & Restaurant", f"Expected 'HOTEL GOMTI & Restaurant', got '{parsed['company_name']}'"
+    assert parsed["full_name"] == "", f"Expected empty full name, got '{parsed['full_name']}'"
     assert parsed["city"] == "Dwarka", f"Expected 'Dwarka', got '{parsed['city']}'"
     assert parsed["state"] == "Gujarat", f"Expected 'Gujarat', got '{parsed['state']}'"
-    assert "info@hotelgomti.com" in parsed["emails"]
-    assert "www.hotelgomti.com" in parsed["websites"]
-    assert any("89805" in p for p in parsed["phones"])
-    assert any("98752" in p for p in parsed["phones"])
+    assert parsed["email"] == "info@hotelgomti.com"
+    assert parsed["website"] == "www.hotelgomti.com"
+    assert any("89805" in p for p in parsed["phone_number"])
+    assert any("98752" in p for p in parsed["phone_number"])
     print("[OK] Hotel Gomti card parsing test PASSED!")
 
 if __name__ == "__main__":

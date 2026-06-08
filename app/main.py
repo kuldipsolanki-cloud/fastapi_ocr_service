@@ -38,13 +38,13 @@ app.add_middleware(
 
 # Response Models for Documentation
 class OCRResponse(BaseModel):
-    person_name: str = Field("", description="Extracted person name")
-    business_name: str = Field("", description="Extracted business/company name")
-    designation: str = Field("", description="Extracted designation/job title")
-    phones: List[str] = Field(default_factory=list, description="Extracted phone/mobile numbers")
-    emails: List[str] = Field(default_factory=list, description="Extracted email addresses")
-    websites: List[str] = Field(default_factory=list, description="Extracted website URLs")
-    address: str = Field("", description="Extracted address/location details")
+    full_name: str = Field("", description="Extracted full name")
+    company_name: str = Field("", description="Extracted company name")
+    job_title: str = Field("", description="Extracted job title/designation")
+    phone_number: List[str] = Field(default_factory=list, description="Extracted phone numbers")
+    email: str = Field("", description="Extracted email address")
+    website: str = Field("", description="Extracted website URL")
+    location: str = Field("", description="Extracted location/address details")
     city: str = Field("", description="Extracted city")
     state: str = Field("", description="Extracted state")
     raw_text: str = Field("", description="Raw extracted text from the card")

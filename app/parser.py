@@ -575,13 +575,13 @@ def parse_business_card(raw_text: str) -> Dict[str, Any]:
     city, state = extract_city_and_state(raw_text)
 
     return {
-        "person_name": clean_stray_artifacts(owner_name),
-        "business_name": clean_stray_artifacts(company_name),
-        "designation": designation_str,
-        "phones": phones,
-        "emails": emails,
-        "websites": websites,
-        "address": clean_stray_artifacts(location),
+        "full_name": clean_stray_artifacts(owner_name),
+        "company_name": clean_stray_artifacts(company_name),
+        "job_title": designation_str,
+        "phone_number": phones,
+        "email": emails[0] if emails else "",
+        "website": websites[0] if websites else "",
+        "location": clean_stray_artifacts(location),
         "city": city or "",
         "state": state or "",
         "raw_text": raw_text
