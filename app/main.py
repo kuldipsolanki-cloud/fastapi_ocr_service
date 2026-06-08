@@ -37,17 +37,27 @@ app.add_middleware(
 )
 
 # Response Models for Documentation
-class OCRResponse(BaseModel):
+class OCRData(BaseModel):
     full_name: str = Field("", description="Extracted full name")
     company_name: str = Field("", description="Extracted company name")
     job_title: str = Field("", description="Extracted job title/designation")
     phone_number: List[str] = Field(default_factory=list, description="Extracted phone numbers")
-    email: str = Field("", description="Extracted email address")
-    website: str = Field("", description="Extracted website URL")
-    location: str = Field("", description="Extracted location/address details")
-    city: str = Field("", description="Extracted city")
-    state: str = Field("", description="Extracted state")
-    raw_text: str = Field("", description="Raw extracted text from the card")
+    email: Optional[str] = Field(None, description="Extracted email address")
+    website: Optional[str] = Field(None, description="Extracted website URL")
+    location: Optional[str] = Field(None, description="Extracted location/address details")
+    city: Optional[str] = Field(None, description="Extracted city")
+    state: Optional[str] = Field(None, description="Extracted state")
+    raw_text: Optional[str] = Field(None, description="Raw extracted text from the card")
+    image: Optional[str] = Field(None, description="Image filename")
+    id: Optional[int] = Field(None, description="Database record ID")
+    user_id: Optional[int] = Field(None, description="User ID")
+    updatedAt: Optional[str] = Field(None, description="Updated timestamp")
+    createdAt: Optional[str] = Field(None, description="Created timestamp")
+
+class OCRResponse(BaseModel):
+    status: str = Field("true", description="Status string ('true' or 'false')")
+    message: str = Field("Card scanned and saved successfully", description="Response message")
+    data: OCRData = Field(..., description="Card data container")
 
 class HealthCheckResponse(BaseModel):
     status: str = Field(..., description="Overall system health status")
@@ -132,8 +142,21 @@ async def extract_text(
         # 4. Parse the raw text
         parsed_fields = parse_business_card(raw_text)
         
+        # Add database structure fields
+        parsed_fields.update({
+            "image": None,
+            "id": None,
+            "user_id": None,
+            "updatedAt": None,
+            "createdAt": None
+        })
+        
         # 5. Build and return structured response
-        return OCRResponse(**parsed_fields)
+        return OCRResponse(
+            status="true",
+            message="Card scanned and saved successfully",
+            data=OCRData(**parsed_fields)
+        )
 
     except TesseractNotInstalledError as e:
         raise HTTPException(
